@@ -6,4 +6,5 @@ res_processing <- function(rij_in = NULL, pu = NULL) {
   # create named vector
   tmp <- as.vector(tmp)
   names(tmp) <- nms
+  return(tmp)
 }

@@ -36,6 +36,34 @@ NSC_END <- readRDS( "data/national/rij_NSC_END.rds")
 NSC_SAR <- readRDS( "data/national/rij_NSC_SAR.rds")
 NSC_SPP <- readRDS( "data/national/rij_NSC_SPP.rds")
 
-# Matrix multiplication 
+# Matrix multiplication ----
+## ECCC Species at risk ----
 SAR_X_aoi_pu <- SAR %*% aoi_pu
-SAR_aoi_pu <- SAR_X_aoi_pu[rowSums(SAR_X_aoi_pu) > 0, ]
+SAR_aoi_pu <- names(SAR_X_aoi_pu[rowSums(SAR_X_aoi_pu) > 0, ])
+
+## Nature Serve Canada Endemics
+NSC_END_X_aoi_pu <- NSC_END %*% aoi_pu
+NSC_END_aoi_pu <- names(NSC_END_X_aoi_pu[rowSums(NSC_END_X_aoi_pu) > 0, ])
+
+## Nature Serve Canada Species at Risk
+NSC_SAR_X_aoi_pu <- NSC_SAR %*% aoi_pu
+NSC_SAR_aoi_pu <- names(NSC_SAR_X_aoi_pu[rowSums(NSC_SAR_X_aoi_pu) > 0, ])
+
+## Nature Serve Canada Common Species
+NSC_SPP_X_aoi_pu <- NSC_SPP %*% aoi_pu
+NSC_SPP_aoi_pu <- names(NSC_SPP_X_aoi_pu[rowSums(NSC_SPP_X_aoi_pu) > 0, ])
+
+# Create csv ----
+## Get the length of the longest vector ----
+max_ln <- max(c(length(SAR_aoi_pu ), length(NSC_END_aoi_pu )),
+              (length(NSC_END_aoi_pu)), length(NSC_SPP_aoi_pu))
+
+## Build data.frame ----
+species <- data.frame(ECC_SAR = c(SAR_aoi_pu,rep(NA, max_ln - length(SAR_aoi_pu))),
+                      NSC_END = c(NSC_END_aoi_pu,rep(NA, max_ln - length(NSC_END_aoi_pu))),
+                      NSC_SAR = c(NSC_SAR_aoi_pu,rep(NA, max_ln - length(NSC_SAR_aoi_pu))),
+                      NSC_SPP = c(NSC_SPP_aoi_pu,rep(NA, max_ln - length(NSC_SPP_aoi_pu))))
+
+## Write species data.frame to disk ----
+write.csv(species, "data/csv/species.csv", row.names = FALSE) 
+

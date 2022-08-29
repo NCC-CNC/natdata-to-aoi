@@ -22,7 +22,6 @@ ncc_1km <- raster("data/national/boundary.tif")
 ncc_1km_idx <- ncc_1km
 ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) #could restrict to non-NA's is desired
 
-
 ncc_pu <- ncc_1km[]
 
 # Align aoi to same extent and same number of rows/cols as national grid ----
@@ -51,6 +50,16 @@ NSC_SPP <- readRDS( "data/national/rij_NSC_SPP.rds")
 SAR_rb <- rbind(SAR, aoi_rij)
 SAR_rb_red <- SAR_rb[,SAR_rb["AOI",] >0]
 SAR_rb_red2 <- SAR_rb_red[rowSums(SAR_rb_red) > 0,]
+
+tt2 <- ncc_1km_idx
+
+rst <- list()
+
+for(ii in 1:(nrow(SAR_rb_red2)-2)){
+  tt2[] <- NA
+  tt2[SAR_rb_red2["Idx",]] <- SAR_rb_red2[ii,]
+  rst[[ii]] <- tt2
+}
 
 
 

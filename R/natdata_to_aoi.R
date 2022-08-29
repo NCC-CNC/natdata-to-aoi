@@ -31,7 +31,8 @@ gdalUtils::align_rasters(unaligned = aoi_path,
                          dstfile = paste0("data/aoi/align/", aoi_name, ".tif"))
 
 # Get numeric vector of aoi planning units 
-aoi_pu <- raster("data/aoi/align/R1km_AOI_Aligned.tif") #%>%
+aoi_pu <- raster("data/aoi/align/R1km_AOI_Aligned.tif")
+# aoi_pu <- raster(paste0("data/aoi/align/", aoi_name, ".tif"))#%>%
 #   getValues()  %>% .[!is.na(ncc_pu)] 
 # # Reclass na to 0
 # aoi_pu <- ifelse(!is.na(aoi_pu), 1, 0)

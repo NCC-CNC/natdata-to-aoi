@@ -12,20 +12,22 @@ library(dplyr)
 library(gdalUtils)
 source("R/fct_res_processing.R")
 
+# Read-in area of interest .tiff (aoi) ----
+aoi_path <- "data/aoi/prairie_grasslands.tif" # <------ CHANGE HERE FOR NEW AOI
+aoi_1km <- raster(aoi_path) 
+aoi_name <- names(aoi_1km)
+
 # Read-in national 1km grid (all of Canada) ----
 ncc_1km <- raster("data/national/boundary.tif")
 ncc_pu <- ncc_1km[]
 
-# Read-in area of interest .tiff (aoi) ----
-aoi_1km <- raster("data/aoi/R1km_AOI.tif")
-
 # Align aoi to same extent and same number of rows/cols as national grid ----
-gdalUtils::align_rasters(unaligned = "data/aoi/R1km_AOI.tif",
+gdalUtils::align_rasters(unaligned = aoi_path,
                          reference = "data/national/boundary.tif",
-                         dstfile = "data/aoi/align/R1km_AOI_Aligned.tif")
+                         dstfile = paste0("data/aoi/align/", aoi_name, ".tif"))
 
 # Get numeric vector of aoi planning units 
-aoi_pu <- raster("data/aoi/align/R1km_AOI_Aligned.tif") %>%
+aoi_pu <- raster(paste0("data/aoi/align/", aoi_name, ".tif")) %>%
   getValues()  %>% .[!is.na(ncc_pu)] 
 # Reclass na to 0
 aoi_pu <- ifelse(!is.na(aoi_pu), 1, 0)
@@ -65,5 +67,7 @@ species <- data.frame(ECC_SAR = c(SAR_aoi_pu,rep(NA, max_ln - length(SAR_aoi_pu)
                       NSC_SPP = c(NSC_SPP_aoi_pu,rep(NA, max_ln - length(NSC_SPP_aoi_pu))))
 
 ## Write species data.frame to disk ----
-write.csv(species, "data/csv/species.csv", row.names = FALSE) 
+write.csv(species, 
+          paste0("data/csv/", names(aoi_1km),"_", species.csv), 
+          row.names = FALSE) 
 

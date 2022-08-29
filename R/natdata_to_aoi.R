@@ -14,6 +14,10 @@ source("R/fct_res_processing.R")
 
 # Read-in national 1km grid (all of Canada) ----
 ncc_1km <- raster("data/national/boundary.tif")
+ncc_1km_idx <- ncc_1km
+ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) #could restrict to non-NA's is desired
+
+
 ncc_pu <- ncc_1km[]
 
 # Read-in area of interest .tiff (aoi) ----
@@ -25,10 +29,13 @@ gdalUtils::align_rasters(unaligned = "data/aoi/R1km_AOI.tif",
                          dstfile = "data/aoi/align/R1km_AOI_Aligned.tif")
 
 # Get numeric vector of aoi planning units 
-aoi_pu <- raster("data/aoi/align/R1km_AOI_Aligned.tif") %>%
-  getValues()  %>% .[!is.na(ncc_pu)] 
-# Reclass na to 0
-aoi_pu <- ifelse(!is.na(aoi_pu), 1, 0)
+aoi_pu <- raster("data/aoi/align/R1km_AOI_Aligned.tif") #%>%
+#   getValues()  %>% .[!is.na(ncc_pu)] 
+# # Reclass na to 0
+# aoi_pu <- ifelse(!is.na(aoi_pu), 1, 0)
+aoi_rij <- prioritizr::rij_matrix(ncc_1km, stack(aoi_pu, ncc_1km_idx)) 
+rownames(aoi_rij) <- c("AOI", "Idx")
+
 
 # Read-in national data ----
 SAR <- readRDS("data/national/rij_SAR.rds") 
@@ -38,8 +45,11 @@ NSC_SPP <- readRDS( "data/national/rij_NSC_SPP.rds")
 
 # Matrix multiplication ----
 ## ECCC Species at risk ----
-SAR_X_aoi_pu <- SAR %*% aoi_pu
-SAR_aoi_pu <- names(SAR_X_aoi_pu[rowSums(SAR_X_aoi_pu) > 0, ])
+SAR_rb <- rbind(SAR, aoi_rij)
+SAR_rb_red <- SAR_rb[,SAR_rb["AOI",] >0]
+SAR_rb_red2 <- SAR_rb_red[rowSums(SAR_rb_red) > 0,]
+
+
 
 ## Nature Serve Canada Endemics
 NSC_END_X_aoi_pu <- NSC_END %*% aoi_pu

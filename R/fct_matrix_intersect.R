@@ -11,7 +11,7 @@
 #' `rij_matrix`
 
 matrix_intersect <- function(natdata_rij, aoi_rij) {
-  # append AOI and Idx to SAR matrix
+  # append AOI and Idx to natdata matrix
   natdata_aoi_ncc <- rbind(natdata_rij, aoi_rij) 
   # get all values greater than (gt) 0 
   natdata_aoi_ncc_gt0 <- natdata_aoi_ncc[, natdata_aoi_ncc["AOI",] > 0]

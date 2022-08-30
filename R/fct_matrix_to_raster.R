@@ -1,3 +1,20 @@
+#' Writes national data rij matrix to raster.
+#' 
+#' @description
+#' The matrix_to_raster function takes the national-AOI rij matrix  and 
+#' populates a template raster by setting values based on the cell index. 
+#' 
+#' @param ncc_1km_idx a [raster] that has the NCC national grid index as values.
+#' 
+#' @param natdata_intersect a sparse matrix of class [dgCMatrix]. The 
+#' natdata-aoi intersect matrix.
+
+#' @param output_folder a [character] path to output raster layers.
+#' 
+#' @param prefix a [character] string to append before the raster name. Helpful
+#' for keeping standard naming. Ex. T_ECC_SAR_. Where T == theme, 
+#' ECC_SAR == source. 
+
 matrix_to_raster = function(ncc_1km_idx, natdata_intersect, output_folder, prefix) {
   
   # Set up placeholder raster

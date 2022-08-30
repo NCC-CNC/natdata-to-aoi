@@ -41,28 +41,32 @@ rownames(aoi_rij) <- c("AOI", "Idx")
 ## ECCC Species at risk ----
 ECC_SAR <- readRDS("data/national/rij_SAR.rds")
 ECC_SAR_intersect <- matrix_intersect(ECC_SAR, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, ECC_SAR_intersect, output_folder, "T_ECC_SAR_")
+matrix_to_raster(ncc_1km_idx, ECC_SAR_intersect, aoi_1km0, 
+                 output_folder, "T_ECC_SAR_")
 ## clean up to save RAM
 rm(ECC_SAR_intersect)
 
 ## Nature Serve Canada Species at risk ----
 NSC_SAR <- readRDS( "data/national/rij_NSC_SAR.rds")
 NSC_SAR_intersect <- matrix_intersect(NSC_SAR, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, NSC_SAR_intersect, output_folder, "T_NSC_SAR_")
+matrix_to_raster(ncc_1km_idx, NSC_SAR_intersect, aoi_1km0,
+                 output_folder, "T_NSC_SAR_")
 ## clean up to save RAM
 rm(NSC_SAR_intersect)
 
 ## Nature Serve Canada Endemics ----
 NSC_END <- readRDS( "data/national/rij_NSC_END.rds")
 NSC_END_intersect <- matrix_intersect(NSC_END, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, NSC_END_intersect, output_folder, "T_NSC_END_")
+matrix_to_raster(ncc_1km_idx, NSC_END_intersect, aoi_1km0,
+                 output_folder, "T_NSC_END_")
 ## clean up to save RAM
 rm(NSC_END_intersect)
 
 ## Nature Serve Canada Common Species ----
 NSC_SPP <- readRDS( "data/national/rij_NSC_SPP.rds")
 NSC_SPP_intersect <- matrix_intersect(NSC_SPP, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, NSC_SPP_intersect, output_folder, "T_NSC_SPP_")
+matrix_to_raster(ncc_1km_idx, NSC_SPP_intersect, aoi_1km0,
+                 output_folder, "T_NSC_SPP_")
 ## clean up to save RAM
 rm(NSC_SPP_intersect)
 

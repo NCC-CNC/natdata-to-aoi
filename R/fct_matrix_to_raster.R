@@ -8,14 +8,19 @@
 #' 
 #' @param natdata_intersect a sparse matrix of class [dgCMatrix]. The 
 #' natdata-aoi intersect matrix.
-
+#' 
+#' @param aoi_1km0 an aoi [raster]. All values must be set to 0. This raster is 
+#' used to crop the national-aoi raster back to the original aoi and also create
+#' the binary output where aoi values == 0 and national data == 1.
+#' 
 #' @param output_folder a [character] path to output raster layers.
 #' 
 #' @param prefix a [character] string to append before the raster name. Helpful
 #' for keeping standard naming. Ex. T_ECC_SAR_. Where T == theme, 
 #' ECC_SAR == source. 
 
-matrix_to_raster = function(ncc_1km_idx, natdata_intersect, output_folder, prefix) {
+matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0, 
+                            output_folder, prefix) {
   
   # Set up placeholder raster
   natdata_raster <- ncc_1km_idx

@@ -27,8 +27,8 @@ matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0,
   natdata_rasters <- list()
   
   # Set up counter for print message
-  len =  (nrow(natdata_intersect)-2)
-  counter = 1
+  len <-  (nrow(natdata_intersect)-2)
+  counter <- 1
   
   # Loop through matrix, exclude AOI and Idx rows
   for (i in 1:(nrow(natdata_intersect)-2)) {
@@ -41,7 +41,10 @@ matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0,
     cropped <- raster::crop(natdata_raster, aoi_1km0)
     ## create binary raster (aoi == 0, natdata = 1) 
     feature <- raster::mosaic(cropped, aoi_1km0, fun = "max")
-    writeRaster(feature, paste0(output_folder, "/", prefix, name,".tif"), overwrite = TRUE, datatype = "INT2S")
-    counter = counter + 1
+    writeRaster(feature, paste0(output_folder, "/", prefix, name,".tif"),
+                overwrite = TRUE, datatype = "INT2S")
+    
+    ## advance counter
+    counter <- counter + 1
   }
 }

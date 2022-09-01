@@ -1,6 +1,9 @@
 ### Overview
 The `natdata_to_aoi.R` script extracts national data (1km cell size) to an area of interest (aoi).
 
+**Note:**
+data needed to run this script is not packaged in this repo. 
+
 ### Inputs:
 1. an output folder path
 2. an aoi raster

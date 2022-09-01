@@ -17,34 +17,46 @@
 #' 
 #' @param prefix a [character] string to append before the raster name. Helpful
 #' for keeping standard naming. Ex. T_ECC_SAR_. Where T == theme, 
-#' ECC_SAR == source. 
+#' ECC_SAR == source.
+#' 
+#' @param datatype a [character] string to define the raster output data type:
+#' `LOG1S`, `INT1S`, `INT1U`, `INT2S`, `INT2U`, `INT4S`, `INT4U`, `FLT4S`, 
+#' `FLT8S`
 
 matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0, 
-                            output_folder, prefix) {
+                            output_folder, prefix, datatype) {
   
   # Set up placeholder raster
   natdata_raster <- ncc_1km_idx
   natdata_rasters <- list()
   
+  
   # Set up counter for print message
   len <-  (nrow(natdata_intersect)-2)
   counter <- 1
   
-  # Loop through matrix, exclude AOI and Idx rows
-  for (i in 1:(nrow(natdata_intersect)-2)) {
-    natdata_raster[] <- NA
-    name <- rownames(natdata_intersect)[i]
-    print(paste0("... ", counter, " of ", len, ": ",  name))
-    natdata_raster[natdata_intersect["Idx",]] <- natdata_intersect[i,]
-    names(natdata_raster) <- name
-    ## crop raster to AOI
-    cropped <- raster::crop(natdata_raster, aoi_1km0)
-    ## create binary raster (aoi == 0, natdata = 1) 
-    feature <- raster::mosaic(cropped, aoi_1km0, fun = "max")
-    writeRaster(feature, paste0(output_folder, "/", prefix, name,".tif"),
-                overwrite = TRUE, datatype = "INT2S")
-    
-    ## advance counter
-    counter <- counter + 1
+  if (len > 0) {
+    # Loop through matrix, exclude AOI and Idx rows
+    for (i in 1:(nrow(natdata_intersect)-2)) {
+      natdata_raster[] <- NA
+      name <- rownames(natdata_intersect)[i]
+      print(paste0("... ", counter, " of ", len, ": ",  name))
+      natdata_raster[natdata_intersect["Idx",]] <- natdata_intersect[i,]
+      names(natdata_raster) <- name
+      ## crop raster to AOI
+      cropped <- raster::crop(natdata_raster, aoi_1km0)
+      ## create binary raster (aoi == 0, natdata = 1) 
+      feature <- raster::mosaic(cropped, aoi_1km0, fun = "max")
+      writeRaster(feature, paste0(output_folder, "/", prefix, name,".tif"),
+                  overwrite = TRUE, datatype = datatype)
+      
+      ## advance counter
+      counter <- counter + 1
+    }
+  
+    } else {
+      print("No pixels from this layer intersect the AOI") 
   }
-}
+}  
+  
+

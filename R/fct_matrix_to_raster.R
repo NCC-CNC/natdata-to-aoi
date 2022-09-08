@@ -38,7 +38,7 @@ matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0,
   if (len > 0) {
     # Loop through matrix, exclude AOI and Idx rows
     for (i in 1:(nrow(natdata_intersect)-2)) {
-      natdata_raster[] <- NA
+      natdata_raster[] <- NA # 26,790,000 planning untis
       name <- rownames(natdata_intersect)[i]
       print(paste0("... ", counter, " of ", len, ": ",  name))
       natdata_raster[natdata_intersect["Idx",]] <- natdata_intersect[i,]

@@ -15,6 +15,9 @@
 
 # 1.0 Load packages ------------------------------------------------------------
 
+## Start timer
+start_time <- Sys.time()
+
 ## Package names
 packages <- c("sf", "raster", "dplyr", "prioritizr", "devtools", "stringr")
 
@@ -44,6 +47,9 @@ source("R/fct_matrix_to_raster.R")
 ## Set output folder ----
 output_folder <- "data/output/Tiffs" # <--- CHANGE HERE FOR NEW PROJECT
 
+## Set output csv ----
+output_csv <- "data/csv/species.csv" # <--- CHANGE HERE FOR NEW PROJECT
+
 ## Read-in area of interest .tiff (aoi) ----
 aoi_path <- "data/aoi/R1km_AOI.tif" # <--- CHANGE HERE FOR NEW AOI
 aoi_1km <- raster(aoi_path) 
@@ -51,10 +57,10 @@ aoi_name <- names(aoi_1km)
 aoi_1km0 <- aoi_1km 
 aoi_1km0[aoi_1km0 == 1] <- 0
 
-## Read-in national 1km grid (all of Canada) ----
+## Read-in national 1km grid (all of Canada, land only) ----
 ncc_1km <- raster("data/national/_nccgrid/boundary.tif")
 ncc_1km_idx <- ncc_1km
-ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) # could restrict to non-NA's is desired
+ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) # 267,790,000 planning units
 
 ## Align aoi to same extent and same number of rows/cols as national grid ----
 unlink("data/aoi/align/*", recursive = T, force = T) # clear folder
@@ -64,7 +70,7 @@ gdalUtils::align_rasters(unaligned = aoi_path,
 
 ## Get aligned AOI planning units ---- 
 aoi_pu <- raster(paste0("data/aoi/align/", aoi_name, ".tif"))
-# Create rij matrix
+# Create aoi_rij matrix: 9,880,260 planing units
 aoi_rij <- prioritizr::rij_matrix(ncc_1km, stack(aoi_pu, ncc_1km_idx)) 
 rownames(aoi_rij) <- c("AOI", "Idx")
 
@@ -75,7 +81,7 @@ rownames(aoi_rij) <- c("AOI", "Idx")
 natdata_rij <- readRDS("data/national/species/rij_SAR.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0, 
-                 output_folder, "T_ECC_SAR_", "INT1U")
+                 output_folder, "T_ECCC_SAR_", "INT1U")
 
 ## Nature Serve Canada Species at risk (theme) ----
 natdata_rij <- readRDS( "data/national/species/rij_NSC_SAR.rds")
@@ -88,7 +94,6 @@ natdata_rij <- readRDS( "data/national/species/rij_NSC_END.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "T_NSC_END_", "INT1U")
-
 
 ## Nature Serve Canada Common Species (theme) ----
 natdata_rij <- readRDS( "data/national/species/rij_NSC_SPP.rds")
@@ -144,7 +149,6 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "W_", "FLT4S")
 
-
 ## Climate forward velocity (weight) ----
 natdata_r <- raster("data/national/climate/fwdshortestpath.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
@@ -167,7 +171,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Forest")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "FLT4S")
+                 output_folder, "T_LC_", "INT2U")
 
 ## Grassland (theme) ----
 natdata_r <- raster("data/national/grassland/AAFC_LU2015_comb_masked_by_Prairie_grassland_comb.tif")
@@ -175,7 +179,23 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Grassland")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "INT1U")
+                 output_folder, "T_LC_", "INT2U")
+
+## Human footprint (weight) ----
+natdata_r <- raster("data/national/disturbance/cum_threat_int_proj2.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Human_disturbance")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 output_folder, "W_", "FLT4S")
+
+## KBAs (weight) ----
+natdata_r <- raster("data/national/kba/KBA.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Key_biodiversity_areas")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 output_folder, "W_", "FLT4S")
 
 ## Protected (include) ----
 ### canadian protected and conserved areas database (CPCAD)
@@ -197,7 +217,7 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "I_", "INT1U")
 ### remove objects to save RAM
-rm(CPCAD, NCC_direct, NCC_direct)
+rm(CPCAD, NCC_direct, NCC_indirect)
 gc()
 
 ## Recreation (weight) ----
@@ -222,7 +242,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("River_length")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "FLT4S")
+                 output_folder, "T_LC_", "FLT4S")
 
 ## Lakes (theme) ----
 natdata_r <- raster("data/national/water/Lakes_CanVec_50k_ha.tif")
@@ -230,7 +250,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Lakes")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "INT2U")
+                 output_folder, "T_LC_", "FLT4S")
 
 ## Shoreline (theme) ----
 natdata_r <- raster("data/national/water/Shoreline.tif")
@@ -238,7 +258,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Shoreline_length")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "FLT4S")
+                 output_folder, "T_LC_", "FLT4S")
 
 ## Wetlands (theme) ----
 natdata_r <- raster("data/national/wetlands/Wetland_comb_proj_diss_90m_Arc.tif")
@@ -246,7 +266,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Wetlands")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_", "INT2U")
+                 output_folder, "T_LC_", "FLT4S")
 
 # Clear some RAM if possible
 gc()
@@ -272,9 +292,9 @@ for (tiff in output_tiffs) {
   ### get file name
   name <- tools::file_path_sans_ext(basename(tiff))
   
-  ### ECC_SAR
-  if(str_detect(name, "T_ECC_SAR_")) {
-    species_name <- unlist(str_split(name, "T_ECC_SAR_"))[2]
+  ### ECCC_SAR
+  if(str_detect(name, "T_ECCC_SAR_")) {
+    species_name <- unlist(str_split(name, "T_ECCC_SAR_"))[2]
     ECCC_SAR <- c(ECCC_SAR, species_name)
   }
   
@@ -341,9 +361,14 @@ species <- data.frame(ECC_SAR = c(ECCC_SAR, rep(NA, max_ln - length(ECCC_SAR))),
 
 ## Write species data.frame to disk 
 write.csv(species, 
-          paste0("data/csv/", aoi_name, "_species.csv"), 
+          output_csv, 
           row.names = FALSE)
 
 # 6.0 Clear R environment ------------------------------------------------------ 
+
+## End timer
+end_time <- Sys.time()
+end_time - start_time
+
 rm(list=ls())
 gc()

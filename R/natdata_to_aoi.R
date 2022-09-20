@@ -19,7 +19,8 @@
 start_time <- Sys.time()
 
 ## Package names
-packages <- c("sf", "raster", "dplyr", "prioritizr", "devtools", "stringr")
+packages <- c("sf", "raster", "dplyr", "prioritizr", 
+              "sp", "stringr", "gdalUtilities")
 
 ## Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -27,18 +28,14 @@ if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 
-## gdalUtils is now an archived package
-if(!require(gdalUtils)){
-  devtools:::install_github("gearslaboratory/gdalUtils")
-}
-
 ## Load packages
 library(sf)
 library(raster)
 library(dplyr)
-library(gdalUtils) 
 library(prioritizr)
+library(sp)
 library(stringr)
+library(gdalUtilities) 
 source("R/fct_matrix_intersect.R")
 source("R/fct_matrix_to_raster.R")
 

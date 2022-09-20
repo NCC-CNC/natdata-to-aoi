@@ -64,9 +64,20 @@ ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) # 267,790,000 planning units
 
 ## Align aoi to same extent and same number of rows/cols as national grid ----
 unlink("data/aoi/align/*", recursive = T, force = T) # clear folder
-gdalUtils::align_rasters(unaligned = aoi_path,
-                         reference = "data/national/_nccgrid/boundary.tif",
-                         dstfile = paste0("data/aoi/align/", aoi_name, ".tif"))
+
+### Get spatial properties of ncc grid
+proj4_string <- sp::proj4string(ncc_1km) # projection string
+bbox <- raster::bbox(ncc_1km) # bounding box
+### variables for gdalwarp
+te <- c(bbox[1,1], bbox[2,1], bbox[1,2], bbox[2,2]) # xmin, ymin, xmax, ymax
+ts <- c(raster::ncol(ncc_1km), raster::nrow(ncc_1km)) # ncc grid: columns/rows
+### gdalUtilities::gdalwarp does not require a local GDAL installation ----
+gdalUtilities::gdalwarp(srcfile = aoi_path,
+                        dstfile = paste0("data/aoi/align/", aoi_name, ".tif"),
+                        te = te,
+                        t_srs = proj4_string,
+                        ts = ts,
+                        overwrite = TRUE)
 
 ## Get aligned AOI planning units ---- 
 aoi_pu <- raster(paste0("data/aoi/align/", aoi_name, ".tif"))

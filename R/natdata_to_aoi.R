@@ -42,27 +42,26 @@ source("R/fct_matrix_to_raster.R")
 # 2.0 Set up -------------------------------------------------------------------
 
 ## Set output folder ----
-output_folder <- "data/output/Tiffs" # <--- CHANGE HERE FOR NEW PROJECT
+output_folder <- "data/output" # <--- CHANGE HERE FOR NEW PROJECT
 
 ## Set output csv ----
-output_csv <- "data/csv/species.csv" # <--- CHANGE HERE FOR NEW PROJECT
+output_csv <- "data/output/species.csv" # <--- CHANGE HERE FOR NEW PROJECT
 
 ## Read-in area of interest .tiff (aoi) ----
-aoi_path <- "data/aoi/R1km_AOI.tif" # <--- CHANGE HERE FOR NEW AOI
+aoi_path <- "data/aoi/AOI.tif" # <--- CHANGE HERE FOR NEW AOI
 aoi_1km <- raster(aoi_path) 
 aoi_name <- names(aoi_1km)
 aoi_1km0 <- aoi_1km 
 aoi_1km0[aoi_1km0 == 1] <- 0
 
-## Read-in national 1km grid (all of Canada, land only) ----
-ncc_1km <- raster("data/national/_nccgrid/boundary.tif")
+## Read-in national 1km grid (all of Canada) ----
+ncc_1km <- raster("data/national/_nccgrid/NCC_PU.tif")
 ncc_1km_idx <- ncc_1km
-ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) # 267,790,000 planning units
+ncc_1km_idx[] <- 1:ncell(ncc_1km_idx) # 267,790,000 available planning units
 
 ## Align aoi to same extent and same number of rows/cols as national grid ----
 unlink("data/aoi/align/*", recursive = T, force = T) # clear folder
-
-### Get spatial properties of ncc grid
+### get spatial properties of ncc grid
 proj4_string <- sp::proj4string(ncc_1km) # projection string
 bbox <- raster::bbox(ncc_1km) # bounding box
 ### variables for gdalwarp
@@ -78,18 +77,23 @@ gdalUtilities::gdalwarp(srcfile = aoi_path,
 
 ## Get aligned AOI planning units ---- 
 aoi_pu <- raster(paste0("data/aoi/align/", aoi_name, ".tif"))
-# Create aoi_rij matrix: 9,880,260 planing units
+# Create aoi_rij matrix: 11,010,932 planing units activated 
 aoi_rij <- prioritizr::rij_matrix(ncc_1km, stack(aoi_pu, ncc_1km_idx)) 
 rownames(aoi_rij) <- c("AOI", "Idx")
-
 
 # 3.0 Extract species to aoi ---------------------------------------------------
 
 ## ECCC Species at risk (theme) ----
-natdata_rij <- readRDS("data/national/species/rij_SAR.rds")
+natdata_rij <- readRDS("data/national/species/rij_ECCC_SAR.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0, 
                  output_folder, "T_ECCC_SAR_", "INT1U")
+
+## ECCC Critical Habitat (theme) ----
+natdata_rij <- readRDS("data/national/species/rij_ECCC_CH.rds")
+matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0, 
+                 output_folder, "T_ECCC_CH_", "INT1U")
 
 ## Nature Serve Canada Species at risk (theme) ----
 natdata_rij <- readRDS( "data/national/species/rij_NSC_SAR.rds")
@@ -110,34 +114,28 @@ matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "T_NSC_SPP_", "INT1U")
 
 ## Amphibians (theme) ----
-natdata_rij <- readRDS( "data/national/species/rij_amph.rds")
+natdata_rij <- readRDS( "data/national/species/rij_IUCN_AMPH.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_IUCN_Amphibians_", "INT1U")
+                 output_folder, "T_IUCN_AMPH_", "INT1U")
 
 ## Birds (theme) ----
-natdata_rij <- readRDS( "data/national/species/rij_bird.rds")
+natdata_rij <- readRDS( "data/national/species/rij_IUCN_BIRD.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_IUCN_Birds_", "INT1U")
-
-## Eco regions (theme) ----
-natdata_rij <- readRDS( "data/national/species/rij_ecor.rds")
-matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_IUCN_EcoRegions_", "INT1U")
+                 output_folder, "T_IUCN_BIRD_", "INT1U")
 
 ## Mammals (theme) ----
-natdata_rij <- readRDS( "data/national/species/rij_mamm.rds")
+natdata_rij <- readRDS( "data/national/species/rij_IUCN_MAMM.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_IUCN_Mammals_", "INT1U")
+                 output_folder, "T_IUCN_MAMM_", "INT1U")
 
 ## Reptiles (theme) ----
-natdata_rij <- readRDS( "data/national/species/rij_rept.rds")
+natdata_rij <- readRDS( "data/national/species/rij_IUCN_REPT.rds")
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 output_folder, "T_IUCN_Reptiles_", "INT1U")
+                 output_folder, "T_IUCN_REPT_", "INT1U")
 
 # 4.0 Extract conservation variables to aoi ------------------------------------
 
@@ -190,9 +188,9 @@ matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "T_LC_", "INT2U")
 
 ## Human footprint (weight) ----
-natdata_r <- raster("data/national/disturbance/cum_threat_int_proj2.tif")
+natdata_r <- raster("data/national/disturbance/CDN_HF_cum_threat_20221031_NoData.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
-rownames(natdata_rij) <- c("Human_disturbance")
+rownames(natdata_rij) <- c("Human_footprint")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  output_folder, "W_", "FLT4S")
@@ -287,13 +285,14 @@ output_tiffs <- list.files(output_folder, pattern='.tif$', full.names = T,
 
 ## Create empty species vectors to populate
 ECCC_SAR <- c()
+ECCC_CH <- c()
 NSC_SAR <- c()
 NSC_END <- c()
 NSC_SPP <- c()
-IUCN_Amphibians <- c()
-IUCN_Birds <- c()
-IUCN_Mammals <- c()
-IUCN_Reptiles <- c()
+IUCN_AMPH <- c()
+IUCN_BIRD <- c()
+IUCN_MAMM <- c()
+IUCN_REPT <- c()
 
 ## Populate species vectors ----
 for (tiff in output_tiffs) {
@@ -305,6 +304,12 @@ for (tiff in output_tiffs) {
     species_name <- unlist(str_split(name, "T_ECCC_SAR_"))[2]
     ECCC_SAR <- c(ECCC_SAR, species_name)
   }
+  
+  ### ECCC_CH
+  if(str_detect(name, "T_ECCC_CH_")) {
+    species_name <- unlist(str_split(name, "T_ECCC_CH_"))[2]
+    ECCC_CH <- c(ECCC_CH, species_name)
+  }  
   
   ### NSC_SAR
   if(str_detect(name, "T_NSC_SAR_")) {
@@ -325,47 +330,48 @@ for (tiff in output_tiffs) {
   } 
   
   ### IUCN_Amphibians
-  if(str_detect(name, "T_IUCN_Amphibians_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_Amphibians_"))[2]
-    IUCN_Amphibians <- c(IUCN_Amphibians, species_name)
+  if(str_detect(name, "T_IUCN_AMPH_")) {
+    species_name <- unlist(str_split(name, "T_IUCN_AMPH_"))[2]
+    IUCN_AMPH <- c(IUCN_AMPH, species_name)
   } 
   
   ### IUCN_Birds
-  if(str_detect(name, "T_IUCN_Birds_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_Birds_"))[2]
-    IUCN_Birds <- c(IUCN_Birds, species_name)
+  if(str_detect(name, "T_IUCN_BIRD_")) {
+    species_name <- unlist(str_split(name, "T_IUCN_BIRD_"))[2]
+    IUCN_BIRD <- c(IUCN_BIRD, species_name)
   }
   
   ### IUCN_Mammals
-  if(str_detect(name, "T_IUCN_Mammals_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_Mammals_"))[2]
-    IUCN_Mammals <- c(IUCN_Mammals, species_name)
+  if(str_detect(name, "T_IUCN_MAMM_")) {
+    species_name <- unlist(str_split(name, "T_IUCN_MAMM_"))[2]
+    IUCN_MAMM <- c(IUCN_MAMM, species_name)
   }  
   
   ### IUCN_Reptiles
-  if(str_detect(name, "T_IUCN_Reptiles_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_Reptiles_"))[2]
-    IUCN_Reptiles <- c(IUCN_Reptiles, species_name)
+  if(str_detect(name, "T_IUCN_REPT_")) {
+    species_name <- unlist(str_split(name, "T_IUCN_REPT_"))[2]
+    IUCN_REPT <- c(IUCN_REPT, species_name)
   }  
 }
 
 
 ## Create csv ----
 ## Get the length of the longest vector 
-max_ln <- max(c(length(ECCC_SAR), length(NSC_END),
-              length(NSC_END), length(NSC_SPP),
-              length(IUCN_Amphibians), length(IUCN_Birds),
-              length(IUCN_Mammals), length(IUCN_Reptiles)))
+max_ln <- max(c(length(ECCC_SAR), length(ECCC_CH), length(NSC_END),
+              length(NSC_SAR), length(NSC_SPP),
+              length(IUCN_AMPH), length(IUCN_BIRD),
+              length(IUCN_MAMM), length(IUCN_REPT)))
 
 ## Build data.frame 
 species <- data.frame(ECC_SAR = c(ECCC_SAR, rep(NA, max_ln - length(ECCC_SAR))),
+                      ECC_CH = c(ECCC_CH, rep(NA, max_ln - length(ECCC_CH))),
                       NSC_END = c(NSC_END, rep(NA, max_ln - length(NSC_END))),
                       NSC_SAR = c(NSC_SAR, rep(NA, max_ln - length(NSC_SAR))),
                       NSC_SPP = c(NSC_SPP, rep(NA, max_ln - length(NSC_SPP))),
-                      IUCN_Amphibians = c(IUCN_Amphibians, rep(NA, max_ln - length(IUCN_Amphibians))),
-                      IUCN_Birds = c(IUCN_Birds, rep(NA, max_ln - length(IUCN_Birds))),
-                      IUCN_Mammals = c(IUCN_Mammals, rep(NA, max_ln - length(IUCN_Mammals))),
-                      IUCN_Reptiles = c(IUCN_Reptiles, rep(NA, max_ln - length(IUCN_Reptiles))))
+                      IUCN_AMPH = c(IUCN_AMPH, rep(NA, max_ln - length(IUCN_AMPH))),
+                      IUCN_BIRD = c(IUCN_BIRD, rep(NA, max_ln - length(IUCN_BIRD))),
+                      IUCN_MAMM = c(IUCN_MAMM, rep(NA, max_ln - length(IUCN_MAMM))),
+                      IUCN_REPT = c(IUCN_REPT, rep(NA, max_ln - length(IUCN_REPT))))
 
 ## Write species data.frame to disk 
 write.csv(species, 

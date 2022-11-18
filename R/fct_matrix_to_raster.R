@@ -46,8 +46,8 @@ matrix_to_raster = function(ncc_1km_idx, natdata_intersect, aoi_1km0,
       ## crop raster to AOI
       cropped <- raster::crop(natdata_raster, aoi_1km0)
       ## create binary raster (aoi == 0, natdata = 1) 
-      feature <- raster::mosaic(cropped, aoi_1km0, fun = "max")
-      writeRaster(feature, paste0(output_folder, "/", prefix, name,".tif"),
+      #feature <- raster::mosaic(cropped, aoi_1km0, fun = "max")
+      writeRaster(cropped, paste0(output_folder, "/", prefix, name,".tif"),
                   overwrite = TRUE, datatype = datatype)
       
       ## advance counter

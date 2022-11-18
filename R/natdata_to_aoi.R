@@ -63,6 +63,10 @@ dir.create(file.path(root_folder, "Variables", "Themes", "NSC_END"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SAR"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SPP"))
 
+# Copy / paste ECCC SAR look-up csv
+file.copy("data/national/species/eccc_sar_names.csv", 
+  paste0(root_folder, "/Variables/Themes/ECCC_SAR/eccc_sar_names.csv"))
+
 ## Read-in area of interest .tiff (aoi) ----
 aoi_1km <- raster(aoi_path) 
 aoi_name <- names(aoi_1km)

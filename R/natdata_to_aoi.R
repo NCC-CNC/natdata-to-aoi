@@ -47,6 +47,7 @@ aoi_path <- "data/aoi/AOI.tif" # <--- CHANGE HERE FOR NEW AOI
 
 ## Create output folder directory ----
 dir.create(file.path(root_folder, "Variables"))
+dir.create(file.path(root_folder, "Variables", "_Tables"))
 dir.create(file.path(root_folder, "Variables", "Excludes"))
 dir.create(file.path(root_folder, "Variables", "Includes"))
 dir.create(file.path(root_folder, "Variables", "Themes"))
@@ -63,9 +64,9 @@ dir.create(file.path(root_folder, "Variables", "Themes", "NSC_END"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SAR"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SPP"))
 
-# Copy / paste ECCC SAR look-up csv
-file.copy("data/national/species/eccc_sar_names.csv", 
-  paste0(root_folder, "/Variables/Themes/ECCC_SAR/eccc_sar_names.csv"))
+# Copy / paste LUT ----
+LUT <- list.files("data/national/species", pattern='.xlsx$|.csv$', full.names = T)
+file.copy(LUT, file.path(root_folder, "Variables", "_Tables"))
 
 ## Read-in area of interest .tiff (aoi) ----
 aoi_1km <- raster(aoi_path) 
@@ -174,14 +175,6 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
   paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "INT2U")
 
-## River length (theme) ----
-natdata_r <- raster("data/national/water/grid_1km_water_linear_flow_length_1km.tif")
-natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
-rownames(natdata_rij) <- c("River_length")
-matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-  paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "FLT4S")
-
 ## Lakes (theme) ----
 natdata_r <- raster("data/national/water/Lakes_CanVec_50k_ha.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
@@ -190,13 +183,21 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
   paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "FLT4S")
 
+## River length (weight) ----
+natdata_r <- raster("data/national/water/grid_1km_water_linear_flow_length_1km.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("River_length")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
+
 ## Shoreline (theme) ----
 natdata_r <- raster("data/national/water/Shoreline.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Shoreline_length")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-  paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "FLT4S")
+  paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
 
 ## Wetlands (theme) ----
 natdata_r <- raster("data/national/wetlands/Wetland_comb_proj_diss_90m_Arc.tif")

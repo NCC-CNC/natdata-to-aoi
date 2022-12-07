@@ -239,6 +239,22 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
   paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
 
+## Climate extremes (weight) ----
+natdata_r <- raster("data/national/climate/Climate_LaSorte_ExtremeHeatEvents.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Climate_extremes")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
+
+## Connectivity (weight) ----
+natdata_r <- raster("data/national/connectivity/Connectivity_Pither_Current_Density.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Connectivity")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
+
 ## Human footprint (weight) ----
 natdata_r <- raster("data/national/disturbance/CDN_HF_cum_threat_20221031_NoData.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)

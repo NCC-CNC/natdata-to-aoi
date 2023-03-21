@@ -60,6 +60,7 @@ dir.create(file.path(root_folder, "Variables", "Themes", "IUCN_BIRD"))
 dir.create(file.path(root_folder, "Variables", "Themes", "IUCN_MAMM"))
 dir.create(file.path(root_folder, "Variables", "Themes", "IUCN_REPT"))
 dir.create(file.path(root_folder, "Variables", "Themes", "LC"))
+dir.create(file.path(root_folder, "Variables", "Themes", "KM"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_END"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SAR"))
 dir.create(file.path(root_folder, "Variables", "Themes", "NSC_SPP"))
@@ -159,16 +160,24 @@ matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
 
 # 4.0 Extract conservation variables to aoi ------------------------------------
 
-## Forest (theme) ----
-natdata_r <- raster("data/national/forest/CA_forest_VLCE_2015_forest_only_ha_proj_scale.tif")
+## Forest - LC (theme) ----
+natdata_r <- raster("data/national/forest/FOREST_LC_COMPOSITE_1KM.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
-rownames(natdata_rij) <- c("Forest")
+rownames(natdata_rij) <- c("Forest-lc")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
   paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "INT2U")
 
+## Forest - LU (theme) ----
+natdata_r <- raster("data/national/forest/FOREST_LU_COMPOSITE_1KM.tif")
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Forest-lu")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "INT2U")
+
 ## Grassland (theme) ----
-natdata_r <- raster("data/national/grassland/AAFC_LU2015_comb_masked_by_Prairie_grassland_comb.tif")
+natdata_r <- raster("data/national/grassland/Grassland_AAFC_LUTS_Total_Percent.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Grassland")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
@@ -183,13 +192,13 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
   paste0(root_folder, "/Variables/Themes/LC"), "T_LC_", "FLT4S")
 
-## River length (weight) ----
+## River length (theme) ----
 natdata_r <- raster("data/national/water/grid_1km_water_linear_flow_length_1km.tif")
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("River_length")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
+  paste0(root_folder, "/Variables/Themes/KM"), "T_KM_", "FLT4S")
 
 ## Shoreline (theme) ----
 natdata_r <- raster("data/national/water/Shoreline.tif")
@@ -197,7 +206,7 @@ natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
 rownames(natdata_rij) <- c("Shoreline_length")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-  paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
+  paste0(root_folder, "/Variables/Themes/KM"), "T_KM_", "FLT4S")
 
 ## Wetlands (theme) ----
 natdata_r <- raster("data/national/wetlands/Wetland_comb_proj_diss_90m_Arc.tif")

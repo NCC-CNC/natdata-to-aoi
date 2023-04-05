@@ -74,7 +74,8 @@ file.copy(LUT, file.path(root_folder, "Variables", "_Tables"))
 aoi_1km <- raster(aoi_path) 
 aoi_name <- names(aoi_1km)
 aoi_1km0 <- aoi_1km 
-aoi_1km0[aoi_1km0 == 1] <- 0
+### Convert aoi to all 0's (was needed for mosaic, but now we crop)... keep for now
+aoi_1km0[aoi_1km0 > 0] <- 0 
 
 ## Read-in national 1km grid (all of Canada) ----
 ncc_1km <- raster(file.path(nat_data_path, "national/_nccgrid/NCC_PU.tif"))
@@ -102,7 +103,7 @@ aoi_pu <- raster(paste0(tools::file_path_sans_ext(aoi_path), "_align.tif"))
 aoi_rij <- prioritizr::rij_matrix(ncc_1km, stack(aoi_pu, ncc_1km_idx))
 rownames(aoi_rij) <- c("AOI", "Idx")
 
-# 3.0 Extract species to aoi ---------------------------------------------------
+# 3.0 national data to aoi -----------------------------------------------------
 
 ## ECCC Critical Habitat (theme) ----
 natdata_rij <- readRDS(file.path(nat_data_path, "national/species/rij_ECCC_CH.rds"))
@@ -157,8 +158,6 @@ natdata_rij <- readRDS(file.path(nat_data_path, "national/species/rij_NSC_SPP.rd
 matrix_overlap <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  paste0(root_folder, "/Variables/Themes/NSC_SPP"), "T_NSC_SPP_", "INT1U")
-
-# 4.0 Extract conservation variables to aoi ------------------------------------
 
 ## Forest - LC (theme) ----
 natdata_r <- raster(file.path(nat_data_path, "national/forest/FOREST_LC_COMPOSITE_1KM.tif"))
@@ -280,29 +279,6 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
 
-## Protected (include) ----
-### canadian protected and conserved areas database (CPCAD)
-CPCAD <- raster(file.path(nat_data_path, "national/protected/CPCAD.tif"))
-CPCAD[is.na(CPCAD[])] <- 0 # convert na values to 0
-### NCC direct properties
-NCC_direct <- raster(file.path(nat_data_path, "national/protected/NCC_direct.tif"))
-NCC_direct[is.na(NCC_direct[])] <- 0 
-### NCC indirect properties
-NCC_indirect <- raster(file.path(nat_data_path, "national/protected/NCC_indirect.tif"))
-NCC_indirect[is.na(NCC_indirect[])] <- 0 
-### raster math
-CPCAD_NCC <- CPCAD + NCC_direct + NCC_indirect
-CPCAD_NCC[CPCAD[] > 0] <- 1 # values > 0, convert to a value of 1
-
-natdata_rij <- prioritizr::rij_matrix(ncc_1km, CPCAD_NCC)
-rownames(natdata_rij) <- c("Protected")
-matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
-matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
-                 paste0(root_folder, "/Variables/Includes"), "I_", "INT1U")
-### remove objects to save RAM
-rm(CPCAD, NCC_direct, NCC_indirect)
-gc()
-
 ## Recreation (weight) ----
 natdata_r <- raster(file.path(nat_data_path, "national/recreation/rec_pro_1a_norm.tif"))
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
@@ -319,8 +295,15 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")
 
-# Clear some RAM if possible
-gc()
+## Protected (include) ----
+### Canadian protected and conserved areas database - Terrestrial Biomes (CPCAD) +
+### NCC Fee simple (FS) + NCC conservation agreements (CA) 
+natdata_r <- raster(file.path(nat_data_path, "national/protected/CPCAD_NCC_FS_CA.tif"))
+natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
+rownames(natdata_rij) <- c("Protected")
+matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
+matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
+                 paste0(root_folder, "/Variables/Includes"), "I_", "INT1U")
 
 # 5.0 Generate species list csv ------------------------------------------------
 

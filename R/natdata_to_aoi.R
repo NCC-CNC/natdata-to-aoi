@@ -1,6 +1,6 @@
 # Authors: Richard Schuster & Dan Wismer
 #
-# Date: September 1st, 2022
+# Date: April 13th, 2023
 #
 # Description: This script extracts national data to an area of interest (aoi)
 #
@@ -10,8 +10,6 @@
 #
 # Outputs: 1. a 1km x 1km raster layer for each variable that intersects 
 #             with the aoi
-#          2. a csv that lists the species that intersect the aoi
-#
 
 # 1.0 Load packages ------------------------------------------------------------
 
@@ -19,8 +17,8 @@
 start_time <- Sys.time()
 
 ## Package names
-packages <- c("sf", "raster", "dplyr", "prioritizr", 
-              "sp", "stringr", "gdalUtilities")
+packages <- c("sf", "raster", "dplyr", "prioritizr", "sp", "stringr", 
+              "gdalUtilities")
 
 ## Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -35,7 +33,7 @@ library(dplyr)
 library(prioritizr)
 library(sp)
 library(stringr)
-library(gdalUtilities) 
+library(gdalUtilities)
 source("R/fct_matrix_intersect.R") # <--- CHANGE IF NOT RUNNING SCRIPT FROM GITHUB FOLDER
 source("R/fct_matrix_to_raster.R") # <--- CHANGE IF NOT RUNNING SCRIPT FROM GITHUB FOLDER
 
@@ -305,108 +303,7 @@ matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij)
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  paste0(root_folder, "/Variables/Includes"), "I_", "INT1U")
 
-# 5.0 Generate species list csv ------------------------------------------------
-
-## List files in root folder
-output_tiffs <- list.files(root_folder, pattern='.tif$', full.names = T, 
-                      recursive = T)
-
-## Create empty species vectors to populate
-ECCC_SAR <- c()
-ECCC_CH <- c()
-NSC_SAR <- c()
-NSC_END <- c()
-NSC_SPP <- c()
-IUCN_AMPH <- c()
-IUCN_BIRD <- c()
-IUCN_MAMM <- c()
-IUCN_REPT <- c()
-
-## Populate species vectors ----
-for (tiff in output_tiffs) {
-  ### get file name
-  name <- tools::file_path_sans_ext(basename(tiff))
-  
-  ### ECCC_SAR
-  if(str_detect(name, "T_ECCC_SAR_")) {
-    species_name <- unlist(str_split(name, "T_ECCC_SAR_"))[2]
-    ECCC_SAR <- c(ECCC_SAR, species_name)
-  }
-  
-  ### ECCC_CH
-  if(str_detect(name, "T_ECCC_CH_")) {
-    species_name <- unlist(str_split(name, "T_ECCC_CH_"))[2]
-    ECCC_CH <- c(ECCC_CH, species_name)
-  }  
-  
-  ### NSC_SAR
-  if(str_detect(name, "T_NSC_SAR_")) {
-    species_name <- unlist(str_split(name, "T_NSC_SAR_"))[2]
-    NSC_SAR <- c(NSC_SAR, species_name)
-  } 
-  
-  ### NSC_END
-  if(str_detect(name, "T_NSC_END_")) {
-    species_name <- unlist(str_split(name, "T_NSC_END_"))[2]
-    NSC_END <- c(NSC_END, species_name)
-  } 
-  
-  ### NSC_SPP
-  if(str_detect(name, "T_NSC_SPP_")) {
-    species_name <- unlist(str_split(name, "T_NSC_SPP_"))[2]
-    NSC_SPP <- c(NSC_SPP, species_name)
-  } 
-  
-  ### IUCN_Amphibians
-  if(str_detect(name, "T_IUCN_AMPH_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_AMPH_"))[2]
-    IUCN_AMPH <- c(IUCN_AMPH, species_name)
-  } 
-  
-  ### IUCN_Birds
-  if(str_detect(name, "T_IUCN_BIRD_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_BIRD_"))[2]
-    IUCN_BIRD <- c(IUCN_BIRD, species_name)
-  }
-  
-  ### IUCN_Mammals
-  if(str_detect(name, "T_IUCN_MAMM_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_MAMM_"))[2]
-    IUCN_MAMM <- c(IUCN_MAMM, species_name)
-  }  
-  
-  ### IUCN_Reptiles
-  if(str_detect(name, "T_IUCN_REPT_")) {
-    species_name <- unlist(str_split(name, "T_IUCN_REPT_"))[2]
-    IUCN_REPT <- c(IUCN_REPT, species_name)
-  }  
-}
-
-
-## Create csv ----
-## Get the length of the longest vector 
-max_ln <- max(c(length(ECCC_SAR), length(ECCC_CH), length(NSC_END),
-              length(NSC_SAR), length(NSC_SPP),
-              length(IUCN_AMPH), length(IUCN_BIRD),
-              length(IUCN_MAMM), length(IUCN_REPT)))
-
-## Build data.frame 
-species <- data.frame(ECC_SAR = c(ECCC_SAR, rep(NA, max_ln - length(ECCC_SAR))),
-                      ECC_CH = c(ECCC_CH, rep(NA, max_ln - length(ECCC_CH))),
-                      NSC_END = c(NSC_END, rep(NA, max_ln - length(NSC_END))),
-                      NSC_SAR = c(NSC_SAR, rep(NA, max_ln - length(NSC_SAR))),
-                      NSC_SPP = c(NSC_SPP, rep(NA, max_ln - length(NSC_SPP))),
-                      IUCN_AMPH = c(IUCN_AMPH, rep(NA, max_ln - length(IUCN_AMPH))),
-                      IUCN_BIRD = c(IUCN_BIRD, rep(NA, max_ln - length(IUCN_BIRD))),
-                      IUCN_MAMM = c(IUCN_MAMM, rep(NA, max_ln - length(IUCN_MAMM))),
-                      IUCN_REPT = c(IUCN_REPT, rep(NA, max_ln - length(IUCN_REPT))))
-
-## Write species data.frame to disk 
-write.csv(species, 
-          paste0(root_folder, "/Variables/Themes/SPECIES.csv"), 
-          row.names = FALSE)
-
-# 6.0 Clear R environment ------------------------------------------------------ 
+# 5.0 Clear R environment ------------------------------------------------------ 
 
 ## End timer
 end_time <- Sys.time()

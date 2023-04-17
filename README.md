@@ -47,5 +47,5 @@ The `natdata_to_aoi.R` script extracts national data (1km cell size) to an area 
 
 ### Includes ----
 
-* Existing Conservation (CPCAD)
+* Existing Conservation (CPCAD + NCC Fee Simple and Conservation Agreements)
 

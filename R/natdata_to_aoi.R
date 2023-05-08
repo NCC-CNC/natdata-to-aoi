@@ -232,7 +232,7 @@ matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
 ## Climate forward shortest path centrality (weight) ----
 natdata_r <- raster(file.path(nat_data_path, "national/climate/Climate_FwdShortestPath_2080_RCP85.tif"))
 natdata_rij <- prioritizr::rij_matrix(ncc_1km, natdata_r)
-rownames(natdata_rij) <- c("Climate_forward_velocity")
+rownames(natdata_rij) <- c("Climate_shortest_path")
 matrix_overlap  <- matrix_intersect(natdata_rij, aoi_rij) 
 matrix_to_raster(ncc_1km_idx, matrix_overlap, aoi_1km0,
                  paste0(root_folder, "/Variables/Weights"), "W_", "FLT4S")

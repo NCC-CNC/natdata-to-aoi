@@ -36,7 +36,7 @@ The `natdata_to_aoi.R` script extracts national data (1km cell size) to an area 
 
 * Carbon storage
 * Carbon potential
-* Climate forward velocity
+* Climate forward shortest path centrality
 * Climate refugia
 * Climate extremes
 * Connectivity
